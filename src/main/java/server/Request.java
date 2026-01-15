@@ -1,6 +1,6 @@
 package server;
 
-import javax.swing.text.AbstractDocument;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -10,13 +10,11 @@ public class Request {
     private final String path;
     private final Map<String, String> headers;
     private final String body;
+    private InputStream bodyStream;
 
-    public Request(String method,
-                   String path,
-                   Map<String, String> headers,
-                   String body) {
-        this.method = Objects.requireNonNull(method, "Method can't be null");
-        this.path = Objects.requireNonNull(path, "Path can't be null");
+    public Request(String method, String path, Map<String, String> headers, String body) {
+        this.method = Objects.requireNonNull(method, "Method не может быть null");
+        this.path = Objects.requireNonNull(path, "Path не может быть null");
         this.headers = new HashMap<>(headers != null ? headers : new HashMap<>());
         this.body = body != null ? body : "";
     }
@@ -37,20 +35,8 @@ public class Request {
         return new HashMap<>(headers);
     }
 
-    public String body() {
+    public String getBody() {
         return body;
-    }
-
-    public int getContentLength() {
-        String contentetLength = headers.get("Conetent-Length");
-        if (contentetLength != null) {
-            try {
-                return Integer.parseInt(contentetLength);
-            } catch (NumberFormatException e){
-                return 0;
-            }
-        }
-        return 0;
     }
 
     public String getContentType() {
@@ -65,5 +51,17 @@ public class Request {
                 ", headers=" + headers +
                 ", bodyLength=" + body.length() +
                 '}';
+    }
+
+    public int getContentLength() {
+        String contentLength = headers.get("Content-Length");
+        if (contentLength != null) {
+            try {
+                return Integer.parseInt(contentLength);
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }
+        return 0;
     }
 }

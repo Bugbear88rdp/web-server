@@ -1,10 +1,9 @@
 package server;
 
-import com.sun.net.httpserver.Request;
-
-import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 
 @FunctionalInterface
 public interface Handler {
-    void handle(Request request, BufferedInputStream responseStream) throws Exception;
+
+    void handle(Request request, BufferedOutputStream responseStream) throws Exception;
 }
