@@ -125,9 +125,14 @@ public class Server {
 
 
     private Handler findHandler(String method, String path) {
+        int questinMarkIndex = path.indexOf('?');
+        String pathWithoutQuery = (questinMarkIndex > 0)
+                ? path.substring(0, questinMarkIndex)
+                : path;
+
         Map<String, Handler> methodHandlers = handlers.get(method);
-        if (methodHandlers != null) {
-            return methodHandlers.get(path);
+        if  (methodHandlers != null) {
+            return methodHandlers.get(pathWithoutQuery);
         }
         return null;
     }

@@ -1,3 +1,4 @@
+import server.FormPart;
 import server.Handler;
 import server.Request;
 import server.Server;
@@ -8,7 +9,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -102,6 +105,67 @@ public class Main {
             public void handle(Request request, BufferedOutputStream responseStream) throws Exception {
                 String response = "[{\"id\":1,\"text\":\"Hello\"},{\"id\":2,\"text\":\"World\"}]";
                 sendJsonResponse(responseStream, 200, response);
+            }
+        });
+
+        server.addHandler("GET", "/search", (request, response) -> {
+            String query = request.getQueryParam("q");        // "java"
+            String limit = request.getQueryParam("limit");    // "10"
+            List<String> tags = request.getQueryParams("tag"); // список всех tag
+
+            String jsonResponse = "{\"q\":\"" + query +
+                    "\",\"limit\":\"" + limit +
+                    "\",\"tags\":" + tags + "}";
+
+            sendJsonResponse(response, 200, jsonResponse);
+        });
+
+        server.addHandler("GET", "/api/filter", (request, response) -> {
+            Map<String, List<String>> allParams = request.getAllQueryParams();
+
+            StringBuilder json = new StringBuilder("{");
+            allParams.forEach((key, values) -> {
+                json.append("\"").append(key).append("\":[");
+                json.append(values.stream()
+                        .map(v -> "\"" + v + "\"")
+                        .collect(Collectors.joining(",")));
+                json.append("],");
+            });
+            if (json.length() > 1) {
+                json.deleteCharAt(json.length() - 1); // удалить последнюю запятую
+            }
+            json.append("}");
+
+            sendJsonResponse(response, 200, json.toString());
+        });
+
+        server.addHandler("POST", "/api/register", (request, response) -> {
+            String name = request.getPostParam("name");
+            String email = request.getPostParam("email");
+            List<String> roles = request.getPostParams("role");
+
+            String jsonResponse = "{\"name\":\"" + name +
+                    "\",\"email\":\"" + email +
+                    "\",\"roles\":" + roles + "}";
+
+            sendJsonResponse(response, 201, jsonResponse);
+        });
+
+        server.addHandler("POST", "/api/upload", (request, response) -> {
+            FormPart filePart = request.getFormPart("file");
+            String description = request.getPostParam("description");
+
+            if (filePart != null && filePart.isFile()) {
+                String filename = filePart.getFilename();
+                long fileSize = filePart.getSize();
+
+                String jsonResponse = "{\"filename\":\"" + filename +
+                        "\",\"size\":" + fileSize +
+                        ",\"description\":\"" + description + "\"}";
+
+                sendJsonResponse(response, 201, jsonResponse);
+            } else {
+                sendErrorResponse(response, 400, "File not provided");
             }
         });
     }
